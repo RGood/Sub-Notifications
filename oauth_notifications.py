@@ -59,10 +59,16 @@ def fetch_subscribed():
 def check_comment(comment,sub,count):
 	#Logging
 	print("Hour elapsed. Checking comment: "+comment.permalink)
-	comment.refresh()
-	#If it's been edited, drop it
-	if(not mentions_sub(comment.body.lower(),sub)):
+	try:
+		comment.refresh()
+	except:
 		print("Dropping comment: "+comment.permalink)
+		print("Reason: Deleted.")
+		untrack_notification(comment.name)
+	#If it's been edited, drop it
+	if(not mentions_sub(comment.body.lower(),sub[1:])):
+		print("Dropping comment: "+comment.permalink)
+		print("Reason: Edited.")
 		untrack_notification(comment.name)
 		return
 	#If the threshold is met:
@@ -82,6 +88,7 @@ def check_comment(comment,sub,count):
 	#If a comment is 1 day old without meeting the threshold, it is dropped.
 	else:
 		print("Dropping comment: "+comment.permalink)
+		print("Reason: Expired.")
 		untrack_notification(comment.name)
 
 #Schedule a comment to be checked
