@@ -73,7 +73,7 @@ def check_comment(comment,sub,count):
 		return
 	#If the threshold is met:
 	if comment.ups > subscribed[sub]:
-		body = comment.permalink+'?context=3\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
+		body = comment.permalink+'?context=3\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
 		#Notify the sub
 		Thread(target=r.send_message,args=(sub,body,)).start()
 		#Logging
