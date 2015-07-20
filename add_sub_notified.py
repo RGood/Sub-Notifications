@@ -19,6 +19,5 @@ karma = int(raw_input('Enter karma: '))
 sub = {}
 sub['name'] = name.lower()
 sub['karma'] = karma
-sub['count'] = 0
 
 coll.update({'name':name},sub,upsert=True)
