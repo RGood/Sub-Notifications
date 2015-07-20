@@ -159,9 +159,7 @@ while(True):
 		subscribed = fetch_subscribed()
 		if(len(subscribed.keys()) == 0):
 			print "Subscriptions list empty! Investigate!"
-		limit = 201+(offset%100)
-		comments = r.get_comments("all",limit=limit)
-		overlap = 0
+		comments = prawlimitless.helpers.comment_stream(r,'all',limit=200)
 		for c in comments:
 			if(c.name not in seen and c.name not in tracked):
 				push_to_seen(c.name)
@@ -173,7 +171,6 @@ while(True):
 						schedule_check(c,n)
 			else:
 				overlap += 1
-		#print str(limit - overlap) + " new comments of possible " + str(limit)
 	except KeyboardInterrupt:
 		print("Break.")
 		break
