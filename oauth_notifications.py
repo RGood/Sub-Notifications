@@ -75,7 +75,7 @@ def check_comment(comment,sub,count):
 	if comment.ups > subscribed[sub]:
 		body = comment.permalink+'?context=3\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
 		#Notify the sub
-		Thread(target=r.send_message,args=(sub,'Your subreddit has been mentioned in a popular comment!',comment.permalink+'?context=3',)).start()
+		Thread(target=r.send_message,args=(sub,body,)).start()
 		#Logging
 		untrack_notification(comment.name)
 		print("Notifying "+sub+" they've been mentioned")
