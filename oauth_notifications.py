@@ -65,6 +65,7 @@ def check_comment(comment,sub,count):
 		print("Dropping comment: "+comment.permalink)
 		print("Reason: Deleted.")
 		untrack_notification(comment.name)
+		return
 	#If it's been edited, drop it
 	if(not mentions_sub(comment.body.lower(),sub[1:])):
 		print("Dropping comment: "+comment.permalink)
