@@ -18,7 +18,7 @@ db = client[Config.get('Mongo Info','database')]
 coll = db[Config.get('Mongo Info','collection')]
 subscribed = {}
 access_information = None
-scope = "identity privatemessages"
+scope = "identity privatemessages read"
 
 app = Flask(__name__)
 
@@ -73,12 +73,12 @@ def check_comment(comment,sub,count):
 		return
 	#If the threshold is met:
 	if comment.ups > subscribed[sub]:
+		print("Notifying "+sub+" they've been mentioned")
 		body = comment.permalink+'?context=3\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
 		#Notify the sub
-		Thread(target=r.send_message,args=(sub,body,)).start()
+		r.send_message(sub,body)
 		#Logging
 		untrack_notification(comment.name)
-		print("Notifying "+sub+" they've been mentioned")
 	#If a comment is less than 24 hours old and doesn't meet the threshold
 	elif(count < 24):
 		#Check again in an hour
