@@ -169,8 +169,6 @@ while(True):
 						Thread(target=increment_count,args=(n,)).start()
 						print("Comment found mentioning "+n)
 						schedule_check(c,n)
-			else:
-				overlap += 1
 	except KeyboardInterrupt:
 		print("Break.")
 		break
