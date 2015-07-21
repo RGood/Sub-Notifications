@@ -18,7 +18,7 @@ db = client[Config.get('Mongo Info','database')]
 coll = db[Config.get('Mongo Info','collection')]
 subscribed = {}
 access_information = None
-scope = "identity privatemessages read"
+scope = "identity privatemessages"
 
 app = Flask(__name__)
 
@@ -74,9 +74,10 @@ def check_comment(comment,sub,count):
 	#If the threshold is met:
 	if comment.ups > subscribed[sub]:
 		print("Notifying "+sub+" they've been mentioned")
+		title = 'Your subreddit has been mentioned in a popular comment!'
 		body = comment.permalink+'?context=3\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
 		#Notify the sub
-		r.send_message(sub,body)
+		r.send_message(sub,title,body)
 		#Logging
 		untrack_notification(comment.name)
 	#If a comment is less than 24 hours old and doesn't meet the threshold
@@ -137,7 +138,7 @@ def mentions_sub(body,sub):
 def refresh_access():
 	global access_information
 	while(True):
-		time.sleep(1800)
+		time.sleep(1600)
 		print 'Refreshing Credentials'
 		r.refresh_access_information(access_information['refresh_token'],update_session=True)
 		print 'Access refreshed'
