@@ -163,7 +163,7 @@ while(True):
 						track_notification(c.name)
 						Thread(target=increment_count,args=(n,)).start()
 						print("Comment found mentioning "+n)
-						check_comment(c,n,0)
+						Thread(target=check_comment,args=(c,n,0,)).start()
 	except KeyboardInterrupt:
 		print("Break.")
 		break
