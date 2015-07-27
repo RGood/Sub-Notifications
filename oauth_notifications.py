@@ -75,8 +75,8 @@ def check_comment(comment,sub,count):
 	#If the threshold is met:
 	if comment.ups > subscribed[sub]:
 		print("Notifying "+sub+" they've been mentioned")
-		title = 'Your subreddit has been mentioned in a comment!'
-		body = comment.permalink+'?context=3\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
+		title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
+		body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
 		#Notify the sub
 		r.send_message(sub,title,body)
 		#Logging
