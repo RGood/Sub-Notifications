@@ -92,13 +92,6 @@ def check_comment(comment,sub,count):
 		print("Dropping comment: "+comment.permalink)
 		print("Reason: Expired.")
 		untrack_notification(comment.name)
-
-#Schedule a comment to be checked
-def schedule_check(comment,sub):
-	t=Timer(3600, check_comment, [comment,sub,0])
-	t.daemon=True
-	t.start()
-	print("Comment added to queue: "+comment.permalink)
 	
 #This bit is to avoid repeated comment checking.
 seen = []
@@ -170,7 +163,7 @@ while(True):
 						track_notification(c.name)
 						Thread(target=increment_count,args=(n,)).start()
 						print("Comment found mentioning "+n)
-						schedule_check(c,n)
+						check_comment(c,n,0)
 	except KeyboardInterrupt:
 		print("Break.")
 		break
