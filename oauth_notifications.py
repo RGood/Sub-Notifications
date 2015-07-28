@@ -9,6 +9,8 @@ import webbrowser
 from threading import Timer
 from threading import Thread
 from flask import Flask, request
+from filter_handler import *
+from Target import *
 
 Config = ConfigParser.ConfigParser()
 Config.read('sn_info.cfg')
@@ -16,7 +18,7 @@ Config.read('sn_info.cfg')
 client = pymongo.MongoClient(Config.get('Mongo Info','conn_str'))
 db = client[Config.get('Mongo Info','database')]
 coll = db[Config.get('Mongo Info','collection')]
-subscribed = {}
+subs = {}
 access_information = None
 scope = "identity privatemessages"
 
@@ -52,13 +54,16 @@ def fetch_subscribed():
 	n_subscribed = {}
 	c = coll.find()
 	for e in c:
-		n_subscribed[e['name']] = e['karma']
+		targets = []
+		for s in e['filters'].keys():
+			targets += [target_from_filter(s,e['filters'][s])]
+		n_subscribed[e['sub']] = targets
 	return n_subscribed
 
 #Check if a comment mentioning a sub meets the threshold
-def check_comment(comment,sub,count):
+def check_comment(comment,sub,target,count):
 	#Logging
-	print("Hour elapsed. Checking comment: "+comment.permalink)
+	print("Checking comment: "+comment.permalink)
 	try:
 		comment.refresh()
 	except:
@@ -73,7 +78,7 @@ def check_comment(comment,sub,count):
 		untrack_notification(comment.name)
 		return
 	#If the threshold is met:
-	if comment.ups > subscribed[sub]:
+	if target.check_out(comment):
 		print("Notifying "+sub+" they've been mentioned")
 		title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
 		body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
@@ -110,16 +115,6 @@ def untrack_notification(comment):
 	global tracked
 	tracked.remove(comment)
 	
-def increment_count(sub):
-	res = coll.find_one({'name':n})
-	count = 0
-	if(res != None):
-		try:
-			count = res['count']+1
-		except Exception:
-			count=1
-		coll.update_one({'name':res['name']},{'$set':{'count':count}})
-	
 #This makes sure a sub notification is accurate, and not part of the name of a different sub
 def mentions_sub(body,sub):
 	result = (sub in body)
@@ -151,22 +146,24 @@ print 'Bot Starting'
 offset = 0
 while(True):
 	try:
-		subscribed = fetch_subscribed()
-		if(len(subscribed.keys()) == 0):
+		subs = fetch_subscribed()
+		if(len(subs.keys()) == 0):
 			print "Subscriptions list empty! Investigate!"
 		comments = prawlimitless.helpers.comment_stream(r,'all',limit=200)
 		for c in comments:
 			if(c.name not in seen and c.name not in tracked):
 				push_to_seen(c.name)
-				for n in subscribed.keys():
+				for n in subs.keys():
 					if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
-						track_notification(c.name)
-						Thread(target=increment_count,args=(n,)).start()
-						print("Comment found mentioning "+n)
-						Thread(target=check_comment,args=(c,n,0,)).start()
+						for t in subs[n]:
+							if(t.check_inc(c)):
+								track_notification(c.name)
+								print("Comment found mentioning "+n)
+								Thread(target=check_comment,args=(c,n,t,0,)).start()
 	except KeyboardInterrupt:
 		print("Break.")
 		break
 	except Exception as e:
 		print(e)
+	
 	offset+=1
