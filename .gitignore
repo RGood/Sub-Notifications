@@ -1,1 +1,3 @@
 sn_info.cfg
+*.pyc
+filter-test/

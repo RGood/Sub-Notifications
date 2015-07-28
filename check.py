@@ -17,13 +17,11 @@ if(name[0:2]=='r/'):
 	name = '/'+name
 elif(name[0:3]!='/r/'):
 	name = '/r/'+name
+	
+target = raw_input('Enter target name: ')
 
-c = coll.find_one({'name':name})
-if(c != None):
-	print str(c['karma']) + " karma required for "+name
-	try:
-		print str(c['count']) + " mentions since subscription."
-	except Exception:
-		print "0 mentions since subscription."
+c = coll.find_one({'sub':name})
+if(c['filters'][target] != None):
+	print c['filters'][target]
 else:
 	print "That sub is not subscribed."

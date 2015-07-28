@@ -63,19 +63,22 @@ def fetch_subscribed():
 #Check if a comment mentioning a sub meets the threshold
 def check_comment(comment,sub,targets,count):
 	#Logging
-	print("Checking comment: "+comment.permalink)
+	try:
+		print("Checking comment: "+comment.permalink)
+	except:
+		pass
 	try:
 		comment.refresh()
 	except:
+		untrack_notification(comment.name)
 		print("Dropping comment: "+comment.permalink)
 		print("Reason: Deleted.")
-		untrack_notification(comment.name)
 		return
 	#If it's been edited, drop it
 	if(not mentions_sub(comment.body.lower(),sub[1:])):
+		untrack_notification(comment.name)
 		print("Dropping comment: "+comment.permalink)
 		print("Reason: Edited.")
-		untrack_notification(comment.name)
 		return
 	#If the threshold is met:
 	to_remove = []
@@ -85,9 +88,9 @@ def check_comment(comment,sub,targets,count):
 			title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
 			body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
 			#Notify the sub
-			r.send_message(sub,title,body)
+			r.send_message(t.name,title,body)
 			to_remove += [t]
-		#If a comment is less than 24 hours old and doesn't meet the threshold
+			
 	for t in to_remove:
 		targets.remove(t)
 	
@@ -96,8 +99,9 @@ def check_comment(comment,sub,targets,count):
 		t.daemon=True
 		t.start()
 	else:
+		untrack_notification(comment.name)
 		print("Dropping comment: "+comment.permalink)
-		print("Reason: Deleted.")
+		print("Reason: All targets notified or expired.")
 	
 #This bit is to avoid repeated comment checking.
 seen = []
@@ -144,7 +148,6 @@ amt.daemon=True
 amt.start()
 #==================================================================================================================
 print 'Bot Starting'
-offset = 0
 while(True):
 	try:
 		subs = fetch_subscribed()
@@ -169,5 +172,3 @@ while(True):
 		break
 	except Exception as e:
 		print(e)
-	
-	offset+=1

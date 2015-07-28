@@ -18,4 +18,6 @@ if(name[0:2]=='r/'):
 elif(name[0:3]!='/r/'):
 	name = '/r/'+name
 	
-coll.delete_one({'name':name})
+target = raw_input('Enter target name: ')
+	
+coll.update({'sub':name},{'$pull' : {'filters':target}})
