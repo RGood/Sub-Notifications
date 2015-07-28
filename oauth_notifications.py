@@ -91,7 +91,7 @@ def check_comment(comment,sub,targets,count):
 	for t in to_remove:
 		targets.remove(t)
 	
-	if(len(targets)>0):
+	if(len(targets)>0 and count<24):
 		t=Timer(3600, check_comment, [comment,sub,targets,count+1])
 		t.daemon=True
 		t.start()
