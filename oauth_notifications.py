@@ -61,7 +61,7 @@ def fetch_subscribed():
 	return n_subscribed
 
 #Check if a comment mentioning a sub meets the threshold
-def check_comment(comment,sub,target,count):
+def check_comment(comment,sub,targets,count):
 	#Logging
 	print("Checking comment: "+comment.permalink)
 	try:
@@ -78,25 +78,26 @@ def check_comment(comment,sub,target,count):
 		untrack_notification(comment.name)
 		return
 	#If the threshold is met:
-	if target.check_out(comment):
-		print("Notifying "+sub+" they've been mentioned")
-		title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
-		body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
-		#Notify the sub
-		r.send_message(sub,title,body)
-		#Logging
-		untrack_notification(comment.name)
-	#If a comment is less than 24 hours old and doesn't meet the threshold
-	elif(count < 24):
-		#Check again in an hour
-		t=Timer(3600, check_comment, [comment,sub,count+1])
+	to_remove = []
+	for t in targets:
+		if t.check_out(comment):
+			print("Notifying "+sub+" they've been mentioned")
+			title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
+			body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
+			#Notify the sub
+			r.send_message(sub,title,body)
+			to_remove += [t]
+		#If a comment is less than 24 hours old and doesn't meet the threshold
+	for t in to_remove:
+		targets.remove(t)
+	
+	if(len(targets)>0):
+		t=Timer(3600, check_comment, [comment,sub,targets,count+1])
 		t.daemon=True
 		t.start()
-	#If a comment is 1 day old without meeting the threshold, it is dropped.
 	else:
 		print("Dropping comment: "+comment.permalink)
-		print("Reason: Expired.")
-		untrack_notification(comment.name)
+		print("Reason: Deleted.")
 	
 #This bit is to avoid repeated comment checking.
 seen = []
@@ -155,11 +156,14 @@ while(True):
 				push_to_seen(c.name)
 				for n in subs.keys():
 					if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
+						ts = []
 						for t in subs[n]:
 							if(t.check_inc(c)):
-								track_notification(c.name)
 								print("Comment found mentioning "+n)
-								Thread(target=check_comment,args=(c,n,t,0,)).start()
+								ts += [t]
+						if(len(ts)>0):
+							track_notification(c.name)
+							Thread(target=check_comment,args=(c,n,ts,0,)).start()
 	except KeyboardInterrupt:
 		print("Break.")
 		break
