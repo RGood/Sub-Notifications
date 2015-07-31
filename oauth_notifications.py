@@ -54,9 +54,9 @@ def fetch_subscribed():
 	n_subscribed = {}
 	c = coll.find()
 	for e in c:
-		targets = []
+		targets = {}
 		for s in e['filters'].keys():
-			targets += [target_from_filter(s,e['filters'][s])]
+			targets[s] = target_from_filter(s,e['filters'][s])
 		n_subscribed[e['sub']] = targets
 	return n_subscribed
 
@@ -83,12 +83,15 @@ def check_comment(comment,sub,targets,count):
 	#If the threshold is met:
 	to_remove = []
 	for t in targets:
-		if t.check_out(comment):
-			print("Notifying "+sub+" they've been mentioned")
-			title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
-			body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
-			#Notify the sub
-			r.send_message(t.name,title,body)
+		try:
+			if subs[t[0]][t[1]].check_out(comment):
+				print("Notifying "+sub+" they've been mentioned")
+				title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
+				body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
+				#Notify the sub
+				r.send_message(t.name,title,body)
+				to_remove += [t]
+		except:
 			to_remove += [t]
 			
 	for t in to_remove:
@@ -132,7 +135,7 @@ def mentions_sub(body,sub):
 def refresh_access():
 	global access_information
 	while(True):
-		time.sleep(1600)
+		time.sleep(540)
 		print 'Refreshing Credentials'
 		r.refresh_access_information(access_information['refresh_token'],update_session=True)
 		print 'Access refreshed'
@@ -160,15 +163,15 @@ while(True):
 				for n in subs.keys():
 					if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
 						ts = []
-						for t in subs[n]:
-							if(t.check_inc(c)):
+						for t in subs[n].keys():
+							if(subs[n][t].check_inc(c)):
 								print("Comment found mentioning "+n)
-								ts += [t]
+								ts += [[n,t]]
 						if(len(ts)>0):
 							track_notification(c.name)
 							Thread(target=check_comment,args=(c,n,ts,0,)).start()
 	except KeyboardInterrupt:
 		print("Break.")
 		break
-	except Exception as e:
-		print(e)
+	except:
+		pass
