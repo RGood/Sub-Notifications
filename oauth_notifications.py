@@ -71,14 +71,20 @@ def check_comment(comment,sub,targets,count):
 		comment.refresh()
 	except:
 		untrack_notification(comment.name)
-		print("Dropping comment: "+comment.permalink)
-		print("Reason: Deleted.")
+		try:
+			print("Dropping comment: "+comment.permalink)
+			print("Reason: Deleted.")
+		except:
+			pass
 		return
 	#If it's been edited, drop it
 	if(not mentions_sub(comment.body.lower(),sub[1:])):
 		untrack_notification(comment.name)
-		print("Dropping comment: "+comment.permalink)
-		print("Reason: Edited.")
+		try:
+			print("Dropping comment: "+comment.permalink)
+			print("Reason: Edited.")
+		except:
+			pass
 		return
 	#If the threshold is met:
 	to_remove = []
@@ -89,9 +95,10 @@ def check_comment(comment,sub,targets,count):
 				title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
 				body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
 				#Notify the sub
-				r.send_message(t.name,title,body)
+				r.send_message(subs[t[0]][t[1]].name,title,body)
 				to_remove += [t]
-		except:
+		except Exception as e:
+			print(e)
 			to_remove += [t]
 			
 	for t in to_remove:
@@ -133,12 +140,14 @@ def mentions_sub(body,sub):
 	return result
 
 def refresh_access():
-	global access_information
 	while(True):
 		time.sleep(540)
 		print 'Refreshing Credentials'
-		r.refresh_access_information(access_information['refresh_token'],update_session=True)
-		print 'Access refreshed'
+		try:
+			r.refresh_access_information(access_information['refresh_token'],update_session=True)
+			print 'Access refreshed'
+		except:
+			print 'Refresh failed'
 		
 #==================================================End Botting Functions===========================================
 
@@ -153,6 +162,7 @@ amt.start()
 print 'Bot Starting'
 while(True):
 	try:
+		#r.refresh_access_information(access_information['refresh_token'],update_session=True)
 		subs = fetch_subscribed()
 		if(len(subs.keys()) == 0):
 			print "Subscriptions list empty! Investigate!"
