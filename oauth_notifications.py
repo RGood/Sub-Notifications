@@ -20,7 +20,7 @@ db = client[Config.get('Mongo Info','database')]
 coll = db[Config.get('Mongo Info','collection')]
 subs = {}
 access_information = None
-scope = "identity privatemessages"
+scope = "identity privatemessages read"
 
 app = Flask(__name__)
 
@@ -155,18 +155,19 @@ r = prawlimitless.Reddit('OAuth Notificationier by /u/The1RGood')
 r.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 webbrowser.open(r.get_authorize_url('DifferentUniqueKey',scope,True))
 app.run(debug=False, port=65010)
-amt = Thread(target=refresh_access,args=())
-amt.daemon=True
-amt.start()
+#amt = Thread(target=refresh_access,args=())
+#amt.daemon=True
+#amt.start()
 #==================================================================================================================
 print 'Bot Starting'
+offset = 1
 while(True):
 	try:
-		#r.refresh_access_information(access_information['refresh_token'],update_session=True)
+		r.refresh_access_information(access_information['refresh_token'],update_session=True)
 		subs = fetch_subscribed()
 		if(len(subs.keys()) == 0):
 			print "Subscriptions list empty! Investigate!"
-		comments = prawlimitless.helpers.comment_stream(r,'all',limit=200)
+		comments = r.get_comments('all',limit=(200+offset%101))
 		for c in comments:
 			if(c.name not in seen and c.name not in tracked):
 				push_to_seen(c.name)
@@ -185,3 +186,4 @@ while(True):
 		break
 	except:
 		pass
+	offset+=1
