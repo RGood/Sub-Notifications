@@ -35,7 +35,7 @@ class NameTarget():
 		if(f=='in_subreddit'):
 			return comment.subreddit.display_name.lower() in data
 		if(f=='not_subreddit'):
-			comment.subreddit.display_name.lower() not in data
+			return comment.subreddit.display_name.lower() not in data
 		if(f=='karma'):
 			return comment.score >= data
 			
