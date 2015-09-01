@@ -93,7 +93,7 @@ def check_comment(comment,sub,targets,count):
 			if subs[t[0]][t[1]].check_out(comment):
 				print("Notifying "+sub+" they've been mentioned")
 				title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
-				body = comment.permalink+'?context=3\n\n________\n\n'+comment.body+'\n\n________\n\n[^^What ^^is ^^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)'
+				body = 'Author: '+comment.author.name +'\n\nURL: '+comment.permalink+'?context=3\n\n___\n\n'+comment.body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)'
 				#Notify the sub
 				r.send_message(subs[t[0]][t[1]].name,title,body)
 				to_remove += [t]
@@ -155,19 +155,20 @@ r = prawlimitless.Reddit('OAuth Notificationier by /u/The1RGood')
 r.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 webbrowser.open(r.get_authorize_url('DifferentUniqueKey',scope,True))
 app.run(debug=False, port=65010)
-#amt = Thread(target=refresh_access,args=())
-#amt.daemon=True
-#amt.start()
+amt = Thread(target=refresh_access,args=())
+amt.daemon=True
+amt.start()
 #==================================================================================================================
 print 'Bot Starting'
-offset = 1
+#offset = 0
 while(True):
 	try:
-		r.refresh_access_information(access_information['refresh_token'],update_session=True)
+		#r.refresh_access_information(access_information['refresh_token'],update_session=True)
 		subs = fetch_subscribed()
 		if(len(subs.keys()) == 0):
 			print "Subscriptions list empty! Investigate!"
-		comments = r.get_comments('all',limit=(200+offset%101))
+		#comments = r.get_comments('all',limit=(200+offset%101))
+		comments = praw.helpers.comment_stream('r','all',limit=200)
 		for c in comments:
 			if(c.name not in seen and c.name not in tracked):
 				push_to_seen(c.name)
@@ -186,4 +187,4 @@ while(True):
 		break
 	except:
 		pass
-	offset+=1
+	#offset+=1
