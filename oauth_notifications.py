@@ -93,7 +93,7 @@ def check_comment(comment,sub,targets,count):
 			if subs[t[0]][t[1]].check_out(comment):
 				print("Notifying "+sub+" they've been mentioned")
 				title = 'Your subreddit has been mentioned in /r/' + comment.subreddit.display_name+'!'
-				body = 'Author: /u/'+comment.author.name +'\n\nURL: '+comment.permalink+'?context=3\n\n___\n\n'+comment.body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)'
+				body = 'Author: /u/'+comment.author.name +'\n\n[Link]('+comment.permalink+'?context=3)\n\n___\n\n'+comment.body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)'
 				#Notify the sub
 				r.send_message(subs[t[0]][t[1]].name,title,body)
 				to_remove += [t]
