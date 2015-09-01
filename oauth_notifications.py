@@ -163,7 +163,7 @@ print 'Bot Starting'
 offset = 0
 while(True):
 	try:
-		#r.refresh_access_information(access_information['refresh_token'],update_session=True)
+		r.refresh_access_information(access_information['refresh_token'],update_session=True)
 		subs = fetch_subscribed()
 		if(len(subs.keys()) == 0):
 			print "Subscriptions list empty! Investigate!"
