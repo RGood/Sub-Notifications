@@ -78,7 +78,7 @@ def check_comment(comment,sub,targets,count):
 			pass
 		return
 	#If it's been edited, drop it
-	if(not mentions_sub(comment.body.lower(),sub[1:])):
+	if(not mentions_sub(comment.selftext.lower(),sub[1:])):
 		untrack_notification(comment.name)
 		try:
 			print("Dropping comment: "+comment.permalink)
