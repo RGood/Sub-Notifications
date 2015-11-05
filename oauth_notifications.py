@@ -159,6 +159,8 @@ app.run(debug=False, port=65010)
 #amt.daemon=True
 #amt.start()
 #==================================================================================================================
+all = r.get_subreddit('all')
+
 print 'Bot Starting'
 offset = 0
 while(True):
@@ -167,13 +169,12 @@ while(True):
 		subs = fetch_subscribed()
 		if(len(subs.keys()) == 0):
 			print "Subscriptions list empty! Investigate!"
-		comments = r.get_comments('all',limit=(200+offset%101))
-		#comments = praw.helpers.comment_stream('r','all',limit=200)
+		comments = all.get_new(limit=(200+offset%101))
 		for c in comments:
 			if(c.name not in seen and c.name not in tracked):
 				push_to_seen(c.name)
 				for n in subs.keys():
-					if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
+					if mentions_sub(c.selftext.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
 						ts = []
 						for t in subs[n].keys():
 							if(subs[n][t].check_inc(c)):
