@@ -69,11 +69,11 @@ def check_comment(comment,sub,targets,count):
 		pass
 	try:
 		comment.refresh()
-	except:
+	except Exception as e:
 		untrack_notification(comment.name)
 		try:
 			print("Dropping comment: "+comment.permalink)
-			print("Reason: Deleted.")
+			print(e)
 		except:
 			pass
 		return

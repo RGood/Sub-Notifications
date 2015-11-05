@@ -74,9 +74,10 @@ for m in mail:
 	
 print('Scanning.')
 running = True
+err_count = 0
 while(running):
 	try:
-		r.refresh_access_information(access_information['refresh_token'])
+		r.refresh_access_information(access_information['refresh_token'],update_session=True)
 		mail = r.get_messages(limit=25)
 		for m in mail:
 			if(m.name not in seen):
@@ -120,5 +121,7 @@ while(running):
 	except KeyboardInterrupt:
 		print("Break.")
 		break
-	except:
-		print("Err state. Restarting.")
+	except Exception as e:
+		err_count+=1
+		print(err_count)
+		print(e)
