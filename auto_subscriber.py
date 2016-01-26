@@ -1,6 +1,6 @@
 # oauth PRAW template by /u/The1RGood #
 #==================================================Config stuff====================================================
-import ConfigParser
+import configparser
 import time, praw
 import webbrowser
 import pymongo
@@ -8,7 +8,7 @@ import json
 from flask import Flask, request
 from threading import Thread
 
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read('sn_info.cfg')
 
 client = pymongo.MongoClient(Config.get('Mongo Info','conn_str'))
@@ -51,9 +51,7 @@ def refresh_access():
 		time.sleep(1800)
 		r.refresh_access_information(access_information['refresh_token'])
 	
-r = praw.Reddit('OAuth FLASK Template Script'
-                'https://praw.readthedocs.org/en/latest/'
-                'pages/oauth.html for more info.')
+r = praw.Reddit('OAuth2 SubNotifications Subscriber Bot')
 r.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 webbrowser.open(r.get_authorize_url('DifferentUniqueKey',scope,True))
 app.run(debug=False, port=65010)
@@ -66,7 +64,7 @@ def push_to_seen(m):
 	if(len(seen)>100):
 		seen.pop()
 
-print 'Buffering old mail...'
+print('Buffering old mail...')
 seen = []
 mail = r.get_messages(limit=50)
 for m in mail:
@@ -109,7 +107,7 @@ while(running):
 						filters['inc_filters'] = inc_filters
 						filters['out_filters'] = out_filters
 						
-						print "Filters made"
+						print("Filters made")
 						
 						target = ("/r/" + m.subreddit.display_name) if (m.subreddit != None) else (m.author.name)
 						print("Subscribing " + target + " to " + body['subreddit'])

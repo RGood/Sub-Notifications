@@ -2,8 +2,8 @@
 # Written by /u/The1RGood #
 ###########################
 #==================================================Config stuff====================================================
-import ConfigParser
-import time, prawlimitless
+import configparser
+import time, praw
 import pymongo
 import webbrowser
 from threading import Timer
@@ -12,7 +12,7 @@ from flask import Flask, request
 from filter_handler import *
 from Target import *
 
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read('sn_info.cfg')
 
 client = pymongo.MongoClient(Config.get('Mongo Info','conn_str'))
@@ -34,7 +34,7 @@ def kill():
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
-    return "Shutting down..."
+    return("Shutting down...")
 
 @app.route('/authorize_callback')
 def authorized():
@@ -114,6 +114,13 @@ def check_comment(comment,sub,targets,count):
 		print("Reason: All targets notified or expired.")
 	
 #This bit is to avoid repeated comment checking.
+seen_mail = []
+def push_to_mail(comment):
+	global seen_mail
+	seen_mail.insert(0,comment)
+	if(len(seen_mail)>10000):
+		seen_mail.pop()
+
 seen = []
 def push_to_seen(comment):
 	global seen
@@ -138,35 +145,69 @@ def mentions_sub(body,sub):
 	if(result):
 		result &= ((body.find(sub)==0) or not (body[body.find(sub)-1].isalnum() or body[body.find(sub) - 1]=='_'))
 	return result
-
-def refresh_access():
-	while(True):
-		time.sleep(540)
-		print 'Refreshing Credentials'
-		try:
-			r.refresh_access_information(access_information['refresh_token'],update_session=True)
-			print 'Access refreshed'
-		except:
-			print 'Refresh failed'
+	
+def handle_mail():
+	mail = r.get_messages(limit=25)
+	for m in mail:
+		if(m.name not in seen_mail):
+			push_to_mail(m.name)
+			if m.subject == "Action: Unsubscribe" and m.parent_id == None:
+				body = None
+				try:
+					body = json.loads(m.body)
+					target = ("/r/" + m.subreddit.display_name) if (m.subreddit != None) else (m.author.name)
+					print("Unsubscribing " + target + " from " + body['subreddit'])
+					coll.update({'sub':"/r/"+body['subreddit'].lower()},{'$unset' : {'filters.'+target:""}})
+					m.reply("You have been successfully unsubscribed.")
+				except:
+					print("Error parsing unsubscribe request.")
+					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
+			elif m.subject == "Action: Subscribe" and m.parent_id == None:
+				body = None
+				try:
+					body = json.loads(m.body)
+					
+					filters = {}
+					inc_filters = {}
+					out_filters = {}
+					
+					inc_filters['not_user'] = body['filter-users']
+					inc_filters['not_subreddit'] = body['filter-subreddits']
+					out_filters['karma'] = body['karma']
+					
+					filters['inc_filters'] = inc_filters
+					filters['out_filters'] = out_filters
+					
+					print("Filters made")
+					
+					target = ("/r/" + m.subreddit.display_name) if (m.subreddit != None) else (m.author.name)
+					print("Subscribing " + target + " to " + body['subreddit'])
+					coll.find_one_and_update({'sub':"/r/"+body['subreddit'].lower()},{'$set': {'filters.'+target : filters}}, upsert=True)
+					m.reply("You have been successfully subscribed.")
+				except:
+					print("Error parsing subscribe request.")
+					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
 		
 #==================================================End Botting Functions===========================================
 
-r = prawlimitless.Reddit('OAuth Notificationier by /u/The1RGood')
+r = praw.Reddit('OAuth Notificationier by /u/The1RGood')
 r.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 webbrowser.open(r.get_authorize_url('DifferentUniqueKey',scope,True))
 app.run(debug=False, port=65010)
-#amt = Thread(target=refresh_access,args=())
-#amt.daemon=True
-#amt.start()
 #==================================================================================================================
-print 'Bot Starting'
+mail = r.get_messages(limit=25)
+for m in mail:
+	push_to_mail(m.name)
+
+print('Bot Starting')
 offset = 0
 while(True):
 	try:
 		r.refresh_access_information(access_information['refresh_token'],update_session=True)
+		handle_mail()
 		subs = fetch_subscribed()
 		if(len(subs.keys()) == 0):
-			print "Subscriptions list empty! Investigate!"
+			print("Subscriptions list empty! Investigate!")
 		comments = r.get_comments('all',limit=(200+offset%101))
 		#comments = praw.helpers.comment_stream('r','all',limit=200)
 		for c in comments:
