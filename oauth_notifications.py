@@ -11,6 +11,7 @@ from threading import Thread
 from flask import Flask, request
 from filter_handler import *
 from Target import *
+import json
 
 Config = configparser.ConfigParser()
 Config.read('sn_info.cfg')
@@ -165,8 +166,7 @@ def handle_mail():
 			elif m.subject == "Action: Subscribe" and m.parent_id == None:
 				body = None
 				try:
-					body = json.loads(m.body)
-					
+					body = json.loads(m.body.replace('\n', ''))
 					filters = {}
 					inc_filters = {}
 					out_filters = {}
