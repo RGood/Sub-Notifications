@@ -81,7 +81,8 @@ def check_comment(target_manager):
 	except:
 		traceback.print_exc(file=sys.stdout)
 	try:
-		target_manager.get_comment().refresh()
+		if(target_manager.get_count()>0):
+			target_manager.get_comment().refresh()
 	except Exception as e:
 		try:
 			print("Dropping comment: "+target_manager.get_comment().permalink)
