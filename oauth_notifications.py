@@ -158,7 +158,7 @@ def handle_mail():
 				body = None
 				try:
 					body = json.loads(m.body)
-					target = ("/r/" + m.subreddit.display_name) if (m.subreddit != None) else (m.author.name)
+					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
 					print("Unsubscribing " + target + " from " + body['subreddit'])
 					coll.update({'sub':"/r/"+body['subreddit'].lower()},{'$unset' : {'filters.'+target:""}})
 					m.reply("You have been successfully unsubscribed.")
@@ -182,7 +182,7 @@ def handle_mail():
 					
 					print("Filters made")
 					
-					target = ("/r/" + m.subreddit.display_name) if (m.subreddit != None) else (m.author.name)
+					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
 					print("Subscribing " + target + " to " + body['subreddit'])
 					coll.find_one_and_update({'sub':"/r/"+body['subreddit'].lower()},{'$set': {'filters.'+target : filters}}, upsert=True)
 					m.reply("You have been successfully subscribed.")
@@ -200,7 +200,7 @@ def handle_comments(comments):
 				to_remove+=[c]
 	for c in to_remove:
 		comments.remove(c)
-				
+
 #==================================================End Botting Functions===========================================
 #handler = MultiprocessHandler('localhost', 10101)
 r = praw.Reddit('OAuth Notificationier by /u/The1RGood',api_request_delay=0.66)
