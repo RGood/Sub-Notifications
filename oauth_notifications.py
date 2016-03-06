@@ -117,7 +117,7 @@ def check_comment(target_manager):
 	for t in to_remove:
 		target_manager.remove_target(t)
 	
-	if(len(targets)>0 and count<24):
+	if(target_manager.target_count()>0 and target_manager.get_count()<24):
 		target_manager.increment()
 		return False
 	else:
@@ -215,6 +215,7 @@ def main():
 		push_to_mail(m.name)
 	
 	active_comments = []
+	last_active = 0
 	
 	print('Bot Starting')
 	offset = 0
@@ -238,6 +239,9 @@ def main():
 							if(tm.target_count()>0):
 								active_comments += [tm]
 			handle_comments(active_comments)
+			if(len(active_comments)!=last_active):
+				last_active = len(active_comments)
+				print("There are " + str(len(active_comments)) + " active comments.")
 		except KeyboardInterrupt:
 			print("Break.")
 			break
