@@ -41,5 +41,4 @@ class NameTarget():
 			return comment.subreddit.display_name.lower() not in data
 		if(f=='karma'):
 			return comment.score >= data
-			
 		return True
