@@ -24,8 +24,10 @@ client = pymongo.MongoClient(Config.get('Mongo Info','conn_str'))
 db = client[Config.get('Mongo Info','database')]
 coll = db[Config.get('Mongo Info','collection')]
 subs = {}
+achievements = []
 access_information = None
 scope = "identity privatemessages read"
+ac = db['Achievements']
 
 app = Flask(__name__)
 
@@ -109,6 +111,20 @@ def check_comment(target_manager):
 				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n[Link]('+target_manager.get_comment().permalink+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)'
 				#Notify the sub
 				r.send_message(subs[t[0]][t[1]].name,title,body)
+				res = AchievementHandler(subs[t[0]][t[1]].name,target_manager.get_sub(),ac).add_notification()
+				if(res):
+					achievements+=[{
+						"name":subs[t[0]][t[1]].name,
+						"sub":target_manager.get_sub(),
+						"achievement":res
+					}]
+				res = AchievementHandler(subs[t[0]][t[1]].name,target_manager.get_sub(),ac).user_mention(target_manager.get_comment().author.name)
+				if(res):
+					achievements+=[{
+						"name":subs[t[0]][t[1]].name,
+						"sub":target_manager.get_sub(),
+						"achievement":res
+					}]
 				to_remove += [t]
 		except:
 			traceback.print_exc(file=sys.stdout)
@@ -186,10 +202,26 @@ def handle_mail():
 					print("Subscribing " + target + " to " + body['subreddit'])
 					coll.find_one_and_update({'sub':"/r/"+body['subreddit'].lower()},{'$set': {'filters.'+target : filters}}, upsert=True)
 					m.reply("You have been successfully subscribed.")
+					res = AchievementHandler(target,"/r/"+body['subreddit'],ac).add_config()
+					if(res):
+						achievements+=[{
+							"name":target,
+							"sub":"/r/"+body['subreddit'],
+							"achievement":res
+						}]
 				except:
 					print("Error parsing subscribe request.")
 					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
-					
+			else:
+				if(m.subreddit):
+					res = AchievementHandler("/r/" + m.subreddit.display_name,"/r/"+body['subreddit'],ac).add_reply()
+					if(res):
+						achievements+=[{
+							"name":"/r/" + m.subreddit.display_name,
+							"sub":"/r/"+body['subreddit'],
+							"achievement":res
+						}]
+
 def handle_comments(comments):
 	to_remove = []
 	for c in comments:
