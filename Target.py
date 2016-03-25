@@ -1,34 +1,3 @@
-import re
-
-import multiprocessing
-import queue as Queue
-
-def check_regex(prog,text):
-	return prog.match(text)
-
-def wrapper(queue, function, *args):
-	result = function(*args)
-	queue.put(result)
-	queue.close()
-
-def call_function_with_timeout(function,timeout,*args):
-	bob = 21 # Whatever sensible value you need
-	queue = multiprocessing.Queue(1) # Maximum size is 1
-	proc = multiprocessing.Process(target=wrapper, args=(queue, function, *args))
-	proc.start()
-	
-	# Wait for TIMEOUT seconds
-	try:
-		result = queue.get(True, timeout)
-	except Queue.Empty:
-		# Deal with lack of data somehow
-		raise RuntimeError("Function exceeded timeout")
-	finally:
-		proc.terminate()
-	
-	# Process data here, not in try block above, otherwise your process keeps running
-	return(result)
-
 class NameTarget():
 	#POSSIBLE INC_FILTERS#
 	# by_user
@@ -67,9 +36,6 @@ class NameTarget():
 			return comment.subreddit.display_name.lower() in data
 		if(f=='not_subreddit'):
 			return comment.subreddit.display_name.lower() not in data
-		if(f=='not_regex'):
-			prog = re.compile(data)
-			return call_function_with_timeout(check_regex,0.1,prog,comment.body)
 		if(f=='karma'):
 			return comment.score >= data
 		return True
