@@ -171,7 +171,7 @@ def handle_mail():
 					names = ""
 					for s in subreddits:
 						names+=s+"    \n"
-					m.reply("You have been successfully unsubscribed from the following subreddit" + (':' if len(subreddits)==1 else 's:\n\n') + names)
+					m.reply("You have been successfully unsubscribed from the following subreddit" + (':\n\n' if len(subreddits)==1 else 's:\n\n') + names)
 				except:
 					print("Error parsing unsubscribe request.")
 					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
@@ -204,7 +204,7 @@ def handle_mail():
 					names = ""
 					for s in subreddits:
 						names+=s+"    \n"
-					m.reply("You have been successfully subscribed to the following subreddit" + (':' if len(subreddits)==1 else 's:\n\n') + names)
+					m.reply("You have been successfully subscribed to the following subreddit" + (':\n\n' if len(subreddits)==1 else 's:\n\n') + names)
 				except:
 					print("Error parsing subscribe request.")
 					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
