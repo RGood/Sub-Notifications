@@ -244,7 +244,8 @@ def main():
 			subs = fetch_subscribed()
 			if(len(subs.keys()) == 0):
 				print("Subscriptions list empty! Investigate!")
-			comments = r.get_comments('all',limit=(200+offset%101))
+			#comments = r.get_comments('all',limit=(200+offset%101))
+			comments = r.get_content('https://www.reddit.com/comments',limit=(200+offset%101))
 			for c in comments:
 				if(c.name not in seen):
 					push_to_seen(c.name)
