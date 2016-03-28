@@ -16,6 +16,7 @@ from Target import *
 from Target_Manager import *
 import json
 import sys, traceback
+import re
 
 Config = configparser.ConfigParser()
 Config.read('sn_info.cfg')
@@ -53,7 +54,6 @@ def authorized():
         r.get_access_information(code)
     except:
         traceback.print_exc(file=sys.stdout)
-    print("got access")
     user = r.get_me()
     text = 'Bot started on /u/' + user.name
     kill()
@@ -108,7 +108,7 @@ def check_comment(target_manager):
 			if subs[t[0]][t[1]].check_out(target_manager.get_comment()):
 				print("Sending notification about"+target_manager.get_sub())
 				title = 'Your subreddit has been mentioned in /r/' + target_manager.get_comment().subreddit.display_name+'!'
-				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n[Link]('+target_manager.get_comment().permalink+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)'
+				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)'
 				#Notify the sub
 				r.send_message(subs[t[0]][t[1]].name,title,body)
 				res = AchievementHandler(subs[t[0]][t[1]].name,target_manager.get_sub(),ac).add_notification()
@@ -166,6 +166,7 @@ def mentions_sub(body,sub):
 	return result
 	
 def handle_mail():
+	regex = "[a-zA-Z0-9\s_-]*"
 	mail = r.get_inbox(limit=25)
 	for m in mail:
 		if(m.name not in seen_mail):
@@ -174,10 +175,19 @@ def handle_mail():
 				body = None
 				try:
 					body = json.loads(m.body)
+					if(not re.fullmatch(regex,body['subreddit'])):
+						m.reply('Unable to parse subreddit. Please double-check the subreddit(s) being unsubscribed from.')
+						return
+						
 					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
 					print("Unsubscribing " + target + " from " + body['subreddit'])
-					coll.update({'sub':"/r/"+body['subreddit'].lower()},{'$unset' : {'filters.'+target:""}})
-					m.reply("You have been successfully unsubscribed.")
+					subreddits = body['subreddit'].split(' ')
+					for s in subreddits:
+						coll.update({'sub':"/r/"+body['subreddit'].lower()},{'$unset' : {'filters.'+target:""}})
+					names = ""
+					for s in subreddits:
+						names+=s+"    \n"
+					m.reply("You have been successfully unsubscribed from the following subreddit" + (':\n\n' if len(subreddits)==1 else 's:\n\n') + names)
 				except:
 					print("Error parsing unsubscribe request.")
 					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
@@ -185,6 +195,10 @@ def handle_mail():
 				body = None
 				try:
 					body = json.loads(m.body.replace('\n', ''))
+					if(not re.fullmatch(regex,body['subreddit'])):
+						m.reply('Unable to parse subreddit. Please double-check the subreddit(s) being subscribed to.')
+						return
+						
 					filters = {}
 					inc_filters = {}
 					out_filters = {}
@@ -200,8 +214,6 @@ def handle_mail():
 					
 					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
 					print("Subscribing " + target + " to " + body['subreddit'])
-					coll.find_one_and_update({'sub':"/r/"+body['subreddit'].lower()},{'$set': {'filters.'+target : filters}}, upsert=True)
-					m.reply("You have been successfully subscribed.")
 					res = AchievementHandler(target,"/r/"+body['subreddit'],ac).add_config()
 					if(res):
 						achievements+=[{
@@ -209,6 +221,13 @@ def handle_mail():
 							"sub":"/r/"+body['subreddit'],
 							"achievement":res
 						}]
+					subreddits = body['subreddit'].split(' ')
+					for s in subreddits:
+						coll.find_one_and_update({'sub':"/r/"+s.lower()},{'$set': {'filters.'+target : filters}}, upsert=True)
+					names = ""
+					for s in subreddits:
+						names+=s+"    \n"
+					m.reply("You have been successfully subscribed to the following subreddit" + (':\n\n' if len(subreddits)==1 else 's:\n\n') + names)
 				except:
 					print("Error parsing subscribe request.")
 					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
@@ -257,7 +276,8 @@ def main():
 			subs = fetch_subscribed()
 			if(len(subs.keys()) == 0):
 				print("Subscriptions list empty! Investigate!")
-			comments = r.get_comments('all',limit=(200+offset%101))
+			#comments = r.get_comments('all',limit=(200+offset%101))
+			comments = r.get_content('https://www.reddit.com/comments',limit=(200+offset%101))
 			for c in comments:
 				if(c.name not in seen):
 					push_to_seen(c.name)
