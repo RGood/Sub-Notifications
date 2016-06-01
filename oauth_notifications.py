@@ -34,7 +34,7 @@ app = Flask(__name__)
 
 CLIENT_ID = Config.get('Reddit Access','cid')
 CLIENT_SECRET = Config.get('Reddit Access','csec')
-REDIRECT_URI = 'http://127.0.0.1:65010/authorize_callback'
+REDIRECT_URI = Config.get('Reddit Access','callback url')
 #==================================================End Config======================================================
 
 def kill():
