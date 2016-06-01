@@ -170,7 +170,7 @@ class AchievementHandler():
 		
 	def flag_gilded(self):
 		record = get_record()
-		if(!record['gilded']):
+		if(not record['gilded']):
 			record['gilded'] = True
 			save_record(record)
 			#Return achievement
@@ -182,7 +182,7 @@ class AchievementHandler():
 			
 	def flag_mod(self):
 		record = get_record()
-		if(!record['mod']):
+		if(not record['mod']):
 			record['mod'] = True
 			save_record(record)
 			return {
@@ -193,7 +193,7 @@ class AchievementHandler():
 			
 	def flag_admin(self):
 		record = get_record()
-		if(!record['admin']):
+		if(not record['admin']):
 			record['admin'] = True
 			save_record(record)
 			#Return achievement
@@ -205,7 +205,7 @@ class AchievementHandler():
 			
 	def flag_controversial(self):
 		record = get_record()
-		if(!record['controversial']):
+		if(not record['controversial']):
 			record['controversial'] = True
 			save_record(record)
 			#Return achievement
