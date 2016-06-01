@@ -34,7 +34,7 @@ app = Flask(__name__)
 
 CLIENT_ID = Config.get('Reddit Access','cid')
 CLIENT_SECRET = Config.get('Reddit Access','csec')
-REDIRECT_URI = Config.get('Reddit Access','callback url')
+REDIRECT_URI = Config.get('Reddit Access','callback')
 #==================================================End Config======================================================
 
 def kill():
