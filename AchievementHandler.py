@@ -102,25 +102,35 @@ class AchievementHandler():
 		#Check value and return possible achievement
 		value = record['replies']
 		if(value==5):
-			'type':'Reply',
-			'name':'Chatty I',
-			'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			return {
+				'type':'Reply',
+				'name':'Chatty I',
+				'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			}
 		elif(value==50):
-			'type':'Reply',
-			'name':'Chatty II',
-			'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			return {
+				'type':'Reply',
+				'name':'Chatty II',
+				'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			}
 		elif(value==500):
-			'type':'Reply',
-			'name':'Chatty III',
-			'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			return {
+				'type':'Reply',
+				'name':'Chatty III',
+				'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			}
 		elif(value==5000):
-			'type':'Reply',
-			'name':'Chatty IV',
-			'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			return {
+				'type':'Reply',
+				'name':'Chatty IV',
+				'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			}
 		elif(value==10000):
-			'type':'Reply',
-			'name':'Chatty IV',
-			'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			return {
+				'type':'Reply',
+				'name':'Chatty V',
+				'description':"You have sent "+str(value)+" replies to subreddit notifications."
+			}
 		else:
 			return None
 		
@@ -131,21 +141,29 @@ class AchievementHandler():
 		#Check value and return possible achievement
 		value = record['config']
 		if(value==5):
-			'type':'Config',
-			'name':'Stay With The Times I',
-			'description':"You have updated the config "+str(value)+" times."
+			return {
+				'type':'Config',
+				'name':'Stay With The Times I',
+				'description':"You have updated the config "+str(value)+" times."
+			}
 		elif(value==10):
-			'type':'Config',
-			'name':'Stay With The Times II',
-			'description':"You have updated the config "+str(value)+" times."
+			return {
+				'type':'Config',
+				'name':'Stay With The Times II',
+				'description':"You have updated the config "+str(value)+" times."
+			}
 		elif(value==50):
-			'type':'Config',
-			'name':'Stay With The Times III',
-			'description':"You have updated the config "+str(value)+" times."
+			return {
+				'type':'Config',
+				'name':'Stay With The Times III',
+				'description':"You have updated the config "+str(value)+" times."
+			}
 		elif(value==100):
-			'type':'Config',
-			'name':'Stay With The Times IV',
-			'description':"You have updated the config "+str(value)+" times."
+			return {
+				'type':'Config',
+				'name':'Stay With The Times IV',
+				'description':"You have updated the config "+str(value)+" times."
+			}
 		else:
 			return None
 		
