@@ -69,21 +69,29 @@ class AchievementHandler():
 		save_record(record)
 		value = record['notifications']
 		if(value==10):
-			'type':'Notifications',
-			'name':'Ears Burning I',
-			'description':"You have received "+str(value)+" notifications."
+			return {
+				'type':'Notifications',
+				'name':'Ears Burning I',
+				'description':"You have received "+str(value)+" notifications."
+			}
 		elif(value==100):
-			'type':'Notifications',
-			'name':'Ears Burning II',
-			'description':"You have received "+str(value)+" notifications."
+			return {
+				'type':'Notifications',
+				'name':'Ears Burning II',
+				'description':"You have received "+str(value)+" notifications."
+			}
 		elif(value==1000):
-			'type':'Notifications',
-			'name':'Ears Burning III',
-			'description':"You have received "+str(value)+" notifications."
+			return {
+				'type':'Notifications',
+				'name':'Ears Burning III',
+				'description':"You have received "+str(value)+" notifications."
+			}
 		elif(value==5000):
-			'type':'Notifications',
-			'name':'Ears Burning IV',
-			'description':"You have received "+str(value)+" notifications."
+			return {
+				'type':'Notifications',
+				'name':'Ears Burning IV',
+				'description':"You have received "+str(value)+" notifications."
+			}
 		else:
 			return None
 		
