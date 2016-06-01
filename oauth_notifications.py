@@ -17,6 +17,7 @@ from Target_Manager import *
 import json
 import sys, traceback
 import re
+from AchievementHandler import *
 
 Config = configparser.ConfigParser()
 Config.read('sn_info.cfg')
