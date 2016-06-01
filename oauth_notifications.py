@@ -256,7 +256,7 @@ def handle_comments(comments):
 #handler = MultiprocessHandler('localhost', 10101)
 r = praw.Reddit('OAuth Notificationier by /u/The1RGood',api_request_delay=0.66)
 r.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
-webbrowser.open(r.get_authorize_url('DifferentUniqueKey',scope,True))
+print(r.get_authorize_url('DifferentUniqueKey',scope,True))
 app.run(debug=False, port=65010)
 #==================================================================================================================
 def main():
