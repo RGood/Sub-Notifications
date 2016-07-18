@@ -25,7 +25,6 @@ client = pymongo.MongoClient(Config.get('Mongo Info','conn_str'))
 db = client[Config.get('Mongo Info','database')]
 coll = db[Config.get('Mongo Info','collection')]
 subs = {}
-access_information = None
 scope = "identity privatemessages read"
 
 app = Flask(__name__)
@@ -44,12 +43,12 @@ def kill():
 
 @app.route('/authorize_callback')
 def authorized():
-    global access_information
     state = request.args.get('state', '')
     code = request.args.get('code', '')
     print(code)
     try:
-        r.get_access_information(code)
+        access_info = r.get_access_information(code)
+        m_h.set_access_credentials(**access_info)
     except:
         traceback.print_exc(file=sys.stdout)
     user = r.get_me()
@@ -106,9 +105,9 @@ def check_comment(target_manager):
 			if subs[t[0]][t[1]].check_out(target_manager.get_comment()):
 				print("Sending notification about"+target_manager.get_sub())
 				title = 'Your subreddit has been mentioned in /r/' + target_manager.get_comment().subreddit.display_name+'!'
-				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)'
+				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)\n\n[^- ^Latest ^Update](https://www.reddit.com/r/SubNotifications/new?limit=1)'
 				#Notify the sub
-				r.send_message(subs[t[0]][t[1]].name,title,body)
+				m_h.send_message(subs[t[0]][t[1]].name,title,body)
 				to_remove += [t]
 		except:
 			traceback.print_exc(file=sys.stdout)
@@ -151,7 +150,7 @@ def mentions_sub(body,sub):
 	
 def handle_mail():
 	regex = "[a-zA-Z0-9\s_-]*"
-	mail = r.get_inbox(limit=25)
+	mail = m_h.get_inbox(limit=25)
 	for m in mail:
 		if(m.name not in seen_mail):
 			push_to_mail(m.name)
@@ -222,8 +221,12 @@ def handle_comments(comments):
 
 #==================================================End Botting Functions===========================================
 #handler = MultiprocessHandler('localhost', 10101)
-r = praw.Reddit('OAuth Notificationier by /u/The1RGood',api_request_delay=0.66)
+external_handler = MultiprocessHandler('localhost', 65000)
+comment_handler = MultiprocessHandler('localhost', 65001)
+r = praw.Reddit('OAuth Notificationier by /u/The1RGood',handler=comment_handler,api_request_delay=0)
+m_h = praw.Reddit('OAuth Notificationer Message Handler by /u/The1RGood',handler=external_handler,api_request_delay=0)
 r.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+m_h.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 print(r.get_authorize_url('DifferentUniqueKey',scope,True))
 app.run(host="0.0.0.0",debug=False, port=65010)
 #==================================================================================================================
