@@ -147,6 +147,7 @@ def handle_mail():
 		if(m.name not in seen_mail):
 			push_to_mail(m.name)
 			if m.subject == "Action: Unsubscribe" and m.parent_id == None:
+				print("Received Unsubscribe Action")
 				body = None
 				try:
 					body = json.loads(m.body)
@@ -154,7 +155,7 @@ def handle_mail():
 						m.reply('Unable to parse subreddit. Please double-check the subreddit(s) being unsubscribed from.')
 						return
 						
-					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
+					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author)
 					print("Unsubscribing " + target + " from " + body['subreddit'])
 					subreddits = body['subreddit'].split(' ')
 					for s in subreddits:
@@ -167,6 +168,7 @@ def handle_mail():
 					print("Error parsing unsubscribe request.")
 					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
 			elif m.subject == "Action: Subscribe" and m.parent_id == None:
+				print("Received Subscribe Action")
 				body = None
 				try:
 					body = json.loads(m.body.replace('\n', ''))
@@ -187,7 +189,7 @@ def handle_mail():
 					
 					print("Filters made")
 					
-					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
+					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author)
 					print("Subscribing " + target + " to " + body['subreddit'])
 					subreddits = body['subreddit'].split(' ')
 					for s in subreddits:
@@ -216,7 +218,7 @@ def call_delay_repeat(function,args,delay=5):
 		try:
 			function(*args)
 		except:
-			pass
+			traceback.print_exc(file=sys.stdout)
 		time.sleep(delay)
 
 def send_message(target,title,body):
