@@ -213,7 +213,10 @@ def handle_comments():
 
 def call_delay_repeat(function,args,delay=5):
 	while(True):
-		function(*args)
+		try:
+			function(*args)
+		except:
+			pass
 		time.sleep(delay)
 
 def send_message(target,title,body):
@@ -254,17 +257,18 @@ def main():
 	comm_thread.start()
 
 	comments = r.subreddit('all').stream.comments()
-	for c in comments:
-		try:
-			for n in subs.keys():
-				if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
-					tm = TargetManager(c,n)
-					for t in subs[n].keys():
-						if(subs[n][t].check_inc(c)):
-							print("Comment found mentioning "+n)
-							tm.add_target([n,t])
-					if(tm.target_count()>0):
-						active_comments += [tm]
+	while(True):
+		try: 
+			for c in comments:
+				for n in subs.keys():
+					if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
+						tm = TargetManager(c,n)
+						for t in subs[n].keys():
+							if(subs[n][t].check_inc(c)):
+								print("Comment found mentioning "+n)
+								tm.add_target([n,t])
+						if(tm.target_count()>0):
+							active_comments += [tm]
 		except KeyboardInterrupt:
 			print("Stopping.")
 			break
