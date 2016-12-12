@@ -5,7 +5,6 @@
 import configparser
 import time
 import praw
-from praw.handlers import MultiprocessHandler
 import pymongo
 import webbrowser
 from threading import Timer
@@ -24,7 +23,6 @@ Config.read('sn_info.cfg')
 client = pymongo.MongoClient(Config.get('Mongo Info','conn_str'))
 db = client[Config.get('Mongo Info','database')]
 coll = db[Config.get('Mongo Info','collection')]
-subs = {}
 scope = "identity privatemessages read"
 
 app = Flask(__name__)
@@ -43,22 +41,20 @@ def kill():
 
 @app.route('/authorize_callback')
 def authorized():
-    state = request.args.get('state', '')
     code = request.args.get('code', '')
     print(code)
     try:
-        access_info = r.get_access_information(code)
-        m_h.set_access_credentials(**access_info)
+        r.auth.authorize(code)
     except:
         traceback.print_exc(file=sys.stdout)
-    user = r.get_me()
-    text = 'Bot started on /u/' + user.name
+    text = 'Bot started on /u/' + r.user.me().name
     kill()
     return text
 
 #==================================================Botting Functions===============================================
 #Update list of subs subscribed to notifications about them
 def fetch_subscribed():
+	global subs
 	n_subscribed = {}
 	c = coll.find()
 	for e in c:
@@ -66,7 +62,7 @@ def fetch_subscribed():
 		for s in e['filters'].keys():
 			targets[s] = target_from_filter(s,e['filters'][s])
 		n_subscribed[e['sub']] = targets
-	return n_subscribed
+	subs = n_subscribed
 
 #Check if a comment mentioning a sub meets the threshold
 #comment = get_comment
@@ -76,7 +72,7 @@ def fetch_subscribed():
 def check_comment(target_manager):
 	#Logging
 	try:
-		print("Checking comment: "+target_manager.get_comment().permalink)
+		print("Checking comment: "+target_manager.get_comment().permalink())
 	except:
 		traceback.print_exc(file=sys.stdout)
 	try:
@@ -84,7 +80,7 @@ def check_comment(target_manager):
 			target_manager.get_comment().refresh()
 	except Exception as e:
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink)
+			print("Dropping comment: "+target_manager.get_comment().permalink())
 			print("Could not refresh.")
 			traceback.print_exc(file=sys.stdout)
 		except:
@@ -93,7 +89,7 @@ def check_comment(target_manager):
 	#If it's been edited, drop it
 	if(not mentions_sub(target_manager.get_comment().body.lower(),target_manager.get_sub()[1:])):
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink)
+			print("Dropping comment: "+target_manager.get_comment().permalink())
 			print("Reason: Edited.")
 		except:
 			pass
@@ -105,9 +101,9 @@ def check_comment(target_manager):
 			if subs[t[0]][t[1]].check_out(target_manager.get_comment()):
 				print("Sending notification about"+target_manager.get_sub())
 				title = 'Your subreddit has been mentioned in /r/' + target_manager.get_comment().subreddit.display_name+'!'
-				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)\n\n[^- ^Latest ^Update](https://www.reddit.com/r/SubNotifications/new?limit=1)'
+				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink()+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)\n\n[^- ^Latest ^Update](https://www.reddit.com/r/SubNotifications/new?limit=1)'
 				#Notify the sub
-				m_h.send_message(subs[t[0]][t[1]].name,title,body)
+				send_message(subs[t[0]][t[1]].name,title,body)
 				to_remove += [t]
 		except:
 			traceback.print_exc(file=sys.stdout)
@@ -120,8 +116,11 @@ def check_comment(target_manager):
 		target_manager.increment()
 		return False
 	else:
-		print("Dropping comment: "+target_manager.get_comment().permalink)
-		print("Reason: All targets notified or expired.")
+		try:
+			print("Dropping comment: "+target_manager.get_comment().permalink())
+			print("Reason: All targets notified or expired.")
+		except:
+			traceback.print_exc(file=sys.stdout)
 		return True
 	
 #This bit is to avoid repeated comment checking.
@@ -131,13 +130,6 @@ def push_to_mail(comment):
 	seen_mail.insert(0,comment)
 	if(len(seen_mail)>10000):
 		seen_mail.pop()
-
-seen = []
-def push_to_seen(comment):
-	global seen
-	seen.insert(0,comment)
-	if(len(seen)>10000):
-		seen.pop()
 	
 #This makes sure a sub notification is accurate, and not part of the name of a different sub
 def mentions_sub(body,sub):
@@ -150,7 +142,7 @@ def mentions_sub(body,sub):
 	
 def handle_mail():
 	regex = "[a-zA-Z0-9\s_-]*"
-	mail = m_h.get_inbox(limit=25)
+	mail = r.inbox.messages(limit=25)
 	for m in mail:
 		if(m.name not in seen_mail):
 			push_to_mail(m.name)
@@ -208,70 +200,77 @@ def handle_mail():
 					print("Error parsing subscribe request.")
 					m.reply("There was an error processing your request. Please check the JSON syntax and try again.\n\nIf you cannot resolve the problem, please message /u/The1RGood.")
 
-def handle_comments(comments):
+def handle_comments():
 	to_remove = []
-	for c in comments:
+	for c in active_comments:
 		if((c.get_time == 0) or (c.get_time() < (time.time() - 3600))):
 			c.reset_time()
 			result = check_comment(c)
 			if(result):
 				to_remove+=[c]
 	for c in to_remove:
-		comments.remove(c)
+		active_comments.remove(c)
+
+def call_delay_repeat(function,args,delay=5):
+	while(True):
+		function(*args)
+		time.sleep(delay)
+
+def send_message(target,title,body):
+	data = {
+		'to': target,
+		'subject': title,
+		'text': body
+	}
+	r.post(praw.const.API_PATH['compose'],data)
 
 #==================================================End Botting Functions===========================================
-#handler = MultiprocessHandler('localhost', 10101)
-external_handler = MultiprocessHandler('localhost', 65000)
-comment_handler = MultiprocessHandler('localhost', 65001)
-r = praw.Reddit('OAuth Notificationier by /u/The1RGood',handler=comment_handler,api_request_delay=0)
-m_h = praw.Reddit('OAuth Notificationer Message Handler by /u/The1RGood',handler=external_handler,api_request_delay=0)
-r.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
-m_h.set_oauth_app_info(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
-print(r.get_authorize_url('DifferentUniqueKey',scope,True))
+
+#==================================================Globals=========================================================
+active_comments = [] #Comments matching incoming filters
+subs = {}            #Structure of subs and their filter criteria
+#==================================================================================================================
+r = praw.Reddit(
+	client_id=CLIENT_ID,
+	client_secret=CLIENT_SECRET,
+	redirect_uri=REDIRECT_URI,
+	user_agent='Sub Mentions general usage client',
+    api_request_delay=0)
+print(r.auth.url(scope.split(' '),True))
 app.run(host="0.0.0.0",debug=False, port=65010)
 #==================================================================================================================
 def main():
-	global subs
-	mail = r.get_inbox(limit=25)
+	global subs, active_comments
+	mail = r.inbox.messages(limit=25)
 	for m in mail:
 		push_to_mail(m.name)
 	
-	active_comments = []
-	last_active = 0
-	
 	print('Bot Starting')
-	offset = 0
-	while(True):
+	mail_thread = Thread(target=call_delay_repeat, daemon=True, args=(handle_mail,()))
+	subs_thread = Thread(target=call_delay_repeat, daemon=True, args=(fetch_subscribed,(),10))
+	comm_thread = Thread(target=call_delay_repeat, daemon=True, args=(handle_comments,(),0))
+	mail_thread.start()
+	subs_thread.start()
+	comm_thread.start()
+
+	comments = r.subreddit('all').stream.comments()
+	for c in comments:
 		try:
-			handle_mail()
-			subs = fetch_subscribed()
-			if(len(subs.keys()) == 0):
-				print("Subscriptions list empty! Investigate!")
-			#comments = r.get_comments('all',limit=(200+offset%101))
-			comments = r.get_content('https://www.reddit.com/comments',limit=(200+offset%101))
-			for c in comments:
-				if(c.name not in seen):
-					push_to_seen(c.name)
-					for n in subs.keys():
-						if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
-							tm = TargetManager(c,n)
-							for t in subs[n].keys():
-								if(subs[n][t].check_inc(c)):
-									print("Comment found mentioning "+n)
-									tm.add_target([n,t])
-							if(tm.target_count()>0):
-								active_comments += [tm]
-			handle_comments(active_comments)
-			if(len(active_comments)!=last_active):
-				last_active = len(active_comments)
-				print("There are " + str(len(active_comments)) + " active comments.")
+			for n in subs.keys():
+				if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
+					tm = TargetManager(c,n)
+					for t in subs[n].keys():
+						if(subs[n][t].check_inc(c)):
+							print("Comment found mentioning "+n)
+							tm.add_target([n,t])
+					if(tm.target_count()>0):
+						active_comments += [tm]
 		except KeyboardInterrupt:
-			print("Break.")
+			print("Stopping.")
 			break
 		except:
 			traceback.print_exc(file=sys.stdout)
 			#pass
-		offset+=1
 		
 if __name__ == '__main__':
 	main()
