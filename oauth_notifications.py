@@ -235,11 +235,11 @@ def send_message(target,title,body):
 def refresh_client():
 	global r
 	r = praw.Reddit(
-	client_id=CLIENT_ID,
-	client_secret=CLIENT_SECRET,
-	refresh_token=REFRESH_TOKEN,
-	user_agent='Sub Mentions general usage client',
-    api_request_delay=0)
+		client_id=CLIENT_ID,
+		client_secret=CLIENT_SECRET,
+		refresh_token=REFRESH_TOKEN,
+		user_agent='Sub Mentions general usage client',
+    	api_request_delay=0)
 
 
 #==================================================End Botting Functions===========================================
@@ -288,6 +288,7 @@ def main():
 			print("Stopping.")
 			break
 		except prawcore.exceptions.Forbidden:
+			'Auth Failed. Refreshing Client.'
 			refresh_client()
 		except:
 			traceback.print_exc(file=sys.stdout)
