@@ -29,13 +29,13 @@ class NameTarget():
 			
 	def pass_filter(self,f,data,comment):
 		if(f=='by_user'):
-			return comment.author.name.lower() in data
+			return comment.author.name.lower() in list(map(lambda name: name.lower(), data))
 		if(f=='not_user'):
-			return comment.author.name.lower() not in data
+			return comment.author.name.lower() not in list(map(lambda name: name.lower(), data))
 		if(f=='in_subreddit'):
-			return comment.subreddit.display_name.lower() in data
+			return comment.subreddit.display_name.lower() in list(map(lambda name: name.lower(), data))
 		if(f=='not_subreddit'):
-			return comment.subreddit.display_name.lower() not in data
+			return comment.subreddit.display_name.lower() not in list(map(lambda name: name.lower(), data))
 		if(f=='karma'):
 			return comment.score >= data
 		return True
