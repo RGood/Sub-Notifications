@@ -4,7 +4,7 @@
 #==================================================Config stuff====================================================
 import configparser
 import time
-import praw
+import praw, prawcore
 import pymongo
 import webbrowser
 from threading import Timer
@@ -30,6 +30,7 @@ app = Flask(__name__)
 CLIENT_ID = Config.get('Reddit Access','cid')
 CLIENT_SECRET = Config.get('Reddit Access','csec')
 REDIRECT_URI = Config.get('Reddit Access','callback')
+REFRESH_TOKEN = ''
 #==================================================End Config======================================================
 
 def kill():
@@ -41,10 +42,10 @@ def kill():
 
 @app.route('/authorize_callback')
 def authorized():
-    code = request.args.get('code', '')
-    print(code)
+    global REFRESH_TOKEN
+    code = request.args.get('code','')
     try:
-        r.auth.authorize(code)
+        REFRESH_TOKEN = r.auth.authorize(code)
     except:
         traceback.print_exc(file=sys.stdout)
     text = 'Bot started on /u/' + r.user.me().name
@@ -217,6 +218,8 @@ def call_delay_repeat(function,args,delay=5):
 	while(True):
 		try:
 			function(*args)
+		except prawcore.exceptions.Forbidden:
+			refresh_client()
 		except:
 			traceback.print_exc(file=sys.stdout)
 		time.sleep(delay)
@@ -228,6 +231,16 @@ def send_message(target,title,body):
 		'text': body
 	}
 	r.post(praw.const.API_PATH['compose'],data)
+
+def refresh_client():
+	global r
+	r = praw.Reddit(
+	client_id=CLIENT_ID,
+	client_secret=CLIENT_SECRET,
+	refresh_token=REFRESH_TOKEN,
+	user_agent='Sub Mentions general usage client',
+    api_request_delay=0)
+
 
 #==================================================End Botting Functions===========================================
 
@@ -241,7 +254,7 @@ r = praw.Reddit(
 	redirect_uri=REDIRECT_URI,
 	user_agent='Sub Mentions general usage client',
     api_request_delay=0)
-print(r.auth.url(scope.split(' '),True))
+print(r.auth.url(scope.split(' '),'UniqueKey'))
 app.run(host="0.0.0.0",debug=False, port=65010)
 #==================================================================================================================
 def main():
@@ -274,6 +287,8 @@ def main():
 		except KeyboardInterrupt:
 			print("Stopping.")
 			break
+		except prawcore.exceptions.Forbidden:
+			refresh_client()
 		except:
 			traceback.print_exc(file=sys.stdout)
 			#pass
