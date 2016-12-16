@@ -218,7 +218,7 @@ def call_delay_repeat(function,args,delay=5):
 	while(True):
 		try:
 			function(*args)
-		except prawcore.exceptions.Forbidden:
+		except (prawcore.exceptions.Forbidden, prawcore.exceptions.ServerError):
 			refresh_client()
 		except:
 			traceback.print_exc(file=sys.stdout)
@@ -287,7 +287,7 @@ def main():
 		except KeyboardInterrupt:
 			print("Stopping.")
 			break
-		except prawcore.exceptions.Forbidden:
+		except (prawcore.exceptions.Forbidden, prawcore.exceptions.ServerError):
 			'Auth Failed. Refreshing Client.'
 			refresh_client()
 		except:
