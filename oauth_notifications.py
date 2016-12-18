@@ -222,6 +222,7 @@ def call_delay_repeat(function,args,delay=5):
 			refresh_client()
 		except:
 			traceback.print_exc(file=sys.stdout)
+			refresh_client()
 		time.sleep(delay)
 
 def send_message(target,title,body):
@@ -292,6 +293,7 @@ def main():
 			refresh_client()
 		except:
 			traceback.print_exc(file=sys.stdout)
+			refresh_client()
 			#pass
 		
 if __name__ == '__main__':
