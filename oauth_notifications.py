@@ -101,7 +101,7 @@ def check_comment(target_manager):
 		try:
 			if subs[t[0]][t[1]].check_out(target_manager.get_comment()):
 				print("Sending notification about "+target_manager.get_sub())
-				title = 'Your subreddit has been mentioned in /r/' + target_manager.get_comment().subreddit.display_name+'!'
+				title = '[Notification] Your subreddit has been mentioned in /r/' + target_manager.get_comment().subreddit.display_name+'!'
 				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink()+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[^- ^What ^is ^this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/)\n\n[^- ^Contact ^My ^Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot)\n\n[^- ^Latest ^Update](https://www.reddit.com/r/SubNotifications/new?limit=1)'
 				#Notify the sub
 				send_message(subs[t[0]][t[1]].name,title,body)
