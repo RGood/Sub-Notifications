@@ -284,6 +284,7 @@ def main():
 								tm.add_target([n,t])
 						if(tm.target_count()>0):
 							active_comments += [tm]
+			print("Reached end of comment stream... Somehow.")
 		except KeyboardInterrupt:
 			print("Stopping.")
 			break
