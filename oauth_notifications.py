@@ -291,7 +291,7 @@ def main():
 			print("Stopping.")
 			break
 		except (prawcore.exceptions.Forbidden, prawcore.exceptions.ServerError):
-			'Auth Failed. Refreshing Client.'
+			print('Auth Failed. Refreshing Client.')
 			refresh_client()
 		except:
 			traceback.print_exc(file=sys.stdout)
