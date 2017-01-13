@@ -272,10 +272,9 @@ def main():
 	subs_thread.start()
 	comm_thread.start()
 
-	comments = r.subreddit('all').stream.comments()
 	while(True):
 		try: 
-			for c in comments:
+			for c in r.subreddit('all').stream.comments():
 				for n in subs.keys():
 					if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
 						tm = TargetManager(c,n)
@@ -285,8 +284,7 @@ def main():
 								tm.add_target([n,t])
 						if(tm.target_count()>0):
 							active_comments += [tm]
-			print("Reached end of comment stream... Somehow. Refreshing Client.")
-			refresh_client()
+			print("Reached end of comment stream... Somehow.")
 		except KeyboardInterrupt:
 			print("Stopping.")
 			break
