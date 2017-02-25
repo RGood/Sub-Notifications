@@ -109,11 +109,11 @@ def check_comment(target_manager):
 		except:
 			traceback.print_exc(file=sys.stdout)
 			to_remove += [t]
-			
+
 	for t in to_remove:
 		target_manager.remove_target(t)
-	
-	if(target_manager.target_count()>0 and target_manager.get_count()<24):
+
+	if(target_manager.target_count()>0 and target_manager.get_count()<12):
 		target_manager.increment()
 		return False
 	else:
@@ -123,7 +123,7 @@ def check_comment(target_manager):
 		except:
 			traceback.print_exc(file=sys.stdout)
 		return True
-	
+
 #This bit is to avoid repeated comment checking.
 seen_mail = []
 def push_to_mail(comment):
@@ -131,7 +131,7 @@ def push_to_mail(comment):
 	seen_mail.insert(0,comment)
 	if(len(seen_mail)>10000):
 		seen_mail.pop()
-	
+
 #This makes sure a sub notification is accurate, and not part of the name of a different sub
 def mentions_sub(body,sub):
 	result = (sub in body)
@@ -140,7 +140,7 @@ def mentions_sub(body,sub):
 	if(result):
 		result &= ((body.find(sub)==0) or not (body[body.find(sub)-1].isalnum() or body[body.find(sub) - 1]=='_'))
 	return result
-	
+
 def handle_mail():
 	regex = "[a-zA-Z0-9\s_-]*"
 	mail = r.inbox.messages(limit=25)
@@ -155,7 +155,7 @@ def handle_mail():
 					if(not re.fullmatch(regex,body['subreddit'])):
 						m.reply('Unable to parse subreddit. Please double-check the subreddit(s) being unsubscribed from.')
 						return
-						
+
 					target = ("/r/" + m.subreddit.lower()) if (m.subreddit != None) else (m.author)
 					print("Unsubscribing " + target + " from " + body['subreddit'])
 					subreddits = body['subreddit'].split(' ')
@@ -176,20 +176,20 @@ def handle_mail():
 					if(not re.fullmatch(regex,body['subreddit'])):
 						m.reply('Unable to parse subreddit. Please double-check the subreddit(s) being subscribed to.')
 						return
-						
+
 					filters = {}
 					inc_filters = {}
 					out_filters = {}
-					
+
 					inc_filters['not_user'] = body['filter-users']
 					inc_filters['not_subreddit'] = body['filter-subreddits']
 					out_filters['karma'] = body['karma']
-					
+
 					filters['inc_filters'] = inc_filters
 					filters['out_filters'] = out_filters
-					
+
 					print("Filters made")
-					
+
 					target = ("/r/" + m.subreddit.lower()) if (m.subreddit != None) else (m.author)
 					print("Subscribing " + target + " to " + body['subreddit'])
 					subreddits = body['subreddit'].split(' ')
@@ -263,7 +263,7 @@ def main():
 	mail = r.inbox.messages(limit=25)
 	for m in mail:
 		push_to_mail(m.name)
-	
+
 	print('Bot Starting')
 	mail_thread = Thread(target=call_delay_repeat, daemon=True, args=(handle_mail,()))
 	subs_thread = Thread(target=call_delay_repeat, daemon=True, args=(fetch_subscribed,(),10))
@@ -274,7 +274,7 @@ def main():
 
 	comments = r.subreddit('all').stream.comments()
 	while(True):
-		try: 
+		try:
 			for c in comments:
 				for n in subs.keys():
 					if mentions_sub(c.body.lower(),n[1:]) and c.subreddit.display_name.lower() != n[3:]:
@@ -297,6 +297,6 @@ def main():
 			traceback.print_exc(file=sys.stdout)
 			refresh_client()
 			#pass
-		
+
 if __name__ == '__main__':
 	main()
