@@ -156,7 +156,7 @@ def handle_mail():
 						m.reply('Unable to parse subreddit. Please double-check the subreddit(s) being unsubscribed from.')
 						return
 
-					target = ("/r/" + m.subreddit.lower()) if (m.subreddit != None) else (m.author.name)
+					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
 					print("Unsubscribing " + target + " from " + body['subreddit'])
 					subreddits = body['subreddit'].split(' ')
 					for s in subreddits:
@@ -191,7 +191,7 @@ def handle_mail():
 
 					print("Filters made")
 
-					target = ("/r/" + m.subreddit.lower()) if (m.subreddit != None) else (m.author.name)
+					target = ("/r/" + m.subreddit.display_name.lower()) if (m.subreddit != None) else (m.author.name)
 					print("Subscribing " + target + " to " + body['subreddit'])
 					subreddits = body['subreddit'].split(' ')
 					for s in subreddits:
