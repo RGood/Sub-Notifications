@@ -73,7 +73,7 @@ def fetch_subscribed():
 def check_comment(target_manager):
 	#Logging
 	try:
-		print("Checking comment: "+target_manager.get_comment().permalink())
+		print("Checking comment: "+target_manager.get_comment().permalink
 	except:
 		traceback.print_exc(file=sys.stdout)
 	try:
@@ -81,7 +81,7 @@ def check_comment(target_manager):
 			target_manager.get_comment().refresh()
 	except Exception as e:
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink())
+			print("Dropping comment: "+target_manager.get_comment().permalink
 			print("Could not refresh.")
 			traceback.print_exc(file=sys.stdout)
 		except:
@@ -90,7 +90,7 @@ def check_comment(target_manager):
 	#If it's been edited, drop it
 	if(not mentions_sub(target_manager.get_comment().body.lower(),target_manager.get_sub()[1:])):
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink())
+			print("Dropping comment: "+target_manager.get_comment().permalink
 			print("Reason: Edited.")
 		except:
 			pass
@@ -102,7 +102,7 @@ def check_comment(target_manager):
 			if subs[t[0]][t[1]].check_out(target_manager.get_comment()):
 				print("Sending notification about "+target_manager.get_sub())
 				title = '[Notification] Your subreddit has been mentioned in /r/' + target_manager.get_comment().subreddit.display_name+'!'
-				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink()+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[What is this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/) | [Contact My Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot) | [Latest Update](https://www.reddit.com/r/SubNotifications/new?limit=1)'
+				body = 'Author: /u/'+target_manager.get_comment().author.name +'\n\n['+target_manager.get_comment().submission.title+']('+target_manager.get_comment().permalink+'?context=3)\n\n___\n\n'+target_manager.get_comment().body+'\n\n___\n\n[What is this?](https://www.reddit.com/r/SubNotifications/comments/3dxono/general_information/) | [Contact My Creator](https://www.reddit.com/message/compose/?to=The1RGood&subject=Sub%20Notifications%20Bot) | [Latest Update](https://www.reddit.com/r/SubNotifications/new?limit=1)'
 				#Notify the sub
 				send_message(subs[t[0]][t[1]].name,title,body)
 				to_remove += [t]
@@ -118,7 +118,7 @@ def check_comment(target_manager):
 		return False
 	else:
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink())
+			print("Dropping comment: "+target_manager.get_comment().permalink
 			print("Reason: All targets notified or expired.")
 		except:
 			traceback.print_exc(file=sys.stdout)
