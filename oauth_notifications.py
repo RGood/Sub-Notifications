@@ -73,7 +73,7 @@ def fetch_subscribed():
 def check_comment(target_manager):
 	#Logging
 	try:
-		print("Checking comment: "+target_manager.get_comment().permalink
+		print("Checking comment: "+target_manager.get_comment().permalink)
 	except:
 		traceback.print_exc(file=sys.stdout)
 	try:
@@ -81,7 +81,7 @@ def check_comment(target_manager):
 			target_manager.get_comment().refresh()
 	except Exception as e:
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink
+			print("Dropping comment: "+target_manager.get_comment().permalink)
 			print("Could not refresh.")
 			traceback.print_exc(file=sys.stdout)
 		except:
@@ -90,7 +90,7 @@ def check_comment(target_manager):
 	#If it's been edited, drop it
 	if(not mentions_sub(target_manager.get_comment().body.lower(),target_manager.get_sub()[1:])):
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink
+			print("Dropping comment: "+target_manager.get_comment().permalink)
 			print("Reason: Edited.")
 		except:
 			pass
@@ -118,7 +118,7 @@ def check_comment(target_manager):
 		return False
 	else:
 		try:
-			print("Dropping comment: "+target_manager.get_comment().permalink
+			print("Dropping comment: "+target_manager.get_comment().permalink)
 			print("Reason: All targets notified or expired.")
 		except:
 			traceback.print_exc(file=sys.stdout)
